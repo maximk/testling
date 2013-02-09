@@ -14,6 +14,17 @@ id(I) -> I.
 -define(FILE_MODULE, file).
 -define(config,test_server:lookup_config).
 
+tt() ->
+	Config = [{priv_dir,"/tmp"},
+			  {data_dir,"/priv/file_SUITE_data"}],
+	ling:trace(5, prim_file),
+	file_SUITE:read_write(Config).
+
+t() ->
+	file:set_cwd("/"),
+	run_tests(file_SUITE, [{priv_dir,"/tmp"},	%% read-write (diod)
+						   {data_dir,"/priv/file_SUITE_data"}]).
+
 %-----------------------------------------------------------------------------
 
 all() ->

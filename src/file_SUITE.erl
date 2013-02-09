@@ -107,7 +107,8 @@ all() ->
      delayed_write, read_ahead, segment_read, segment_write,
      ipread, pid2name, interleaved_read_write, otp_5814,
      large_file, read_line_1, read_line_2, read_line_3,
-     read_line_4, standard_io].
+     %%read_line_4, %%MK: read_ahead not supported
+	 standard_io].
 
 groups() -> 
     [{dirs, [], [make_del_dir, cur_dir_0, cur_dir_1]},
@@ -394,7 +395,8 @@ make_del_dir(Config) when is_list(Config) ->
 	%% Don't worry ;-) the parent directory should never be empty, right?
 	?line case ?FILE_MODULE:del_dir('..') of
 		  {error, eexist} -> ok;
-		  {error, einval} -> ok			%FreeBSD
+		  {error, einval} -> ok;		%FreeBSD
+		  {error, enotempty} -> ok		%%Ling
 	      end,
 	?line {error, enoent} = ?FILE_MODULE:del_dir(""),
 	?line {error, badarg} = ?FILE_MODULE:del_dir([3,2,1,{}]),
@@ -3774,6 +3776,7 @@ read_line_3(Config) when is_list(Config) ->
 	    end || {_,File,_,Y} <- All , Y =:= fail],
     ?line read_line_remove_files(All),
     ok.
+
 read_line_4(suite) -> 
     [];
 read_line_4(doc) ->
@@ -3884,7 +3887,7 @@ read_line_all(Filename) ->
     X=read_rl_lines(F),
     prim_file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 
@@ -3893,7 +3896,7 @@ read_line_all2(Filename) ->
     X=read_rl_lines2(F),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 
@@ -3902,15 +3905,16 @@ read_line_all3(Filename) ->
     X=read_rl_lines2(F),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
+
 read_line_all4(Filename) ->
     {ok,F} = file:open(Filename,[read,binary,raw,{read_ahead,8192}]),
     X=read_rl_lines2(F),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 
@@ -3934,26 +3938,12 @@ read_rl_lines2(F) ->
 	    [List | read_rl_lines2(F)]
     end.
 
-%%
-%% MK: ling does not support re
-%%
-re_replace(Bin, "\r\n", "\n", [global,{return,binary}]) ->
-	S = binary_to_list(Bin),
-	re_replace_1(S, []).
-
-re_replace_1([], Acc) ->
-	list_to_binary(lists:reverse(Acc));
-re_replace_1([$\r,$\n|S], Acc) ->
-	re_replace_1(S, [$\n|Acc]);
-re_replace_1([X|S], Acc) ->
-	re_replace_1(S, [X|Acc]).
-
 read_line_all_alternating(Filename) ->
     {ok,F} = prim_file:open(Filename,[read,binary]),
     X=read_rl_lines(F,true),
     prim_file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 
@@ -3962,7 +3952,7 @@ read_line_all_alternating2(Filename) ->
     X=read_rl_lines2(F,true),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 read_line_all_alternating3(Filename) ->
@@ -3970,7 +3960,7 @@ read_line_all_alternating3(Filename) ->
     X=read_rl_lines2(F,true),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 read_line_all_alternating4(Filename) ->
@@ -3978,7 +3968,7 @@ read_line_all_alternating4(Filename) ->
     X=read_rl_lines2(F,true),
     file:close(F),
     Bin = list_to_binary([B || {ok,B} <- X]),
-    Bin = re_replace(list_to_binary([element(2,file:read_file(Filename))]),
+    Bin = re:replace(list_to_binary([element(2,file:read_file(Filename))]),
 		     "\r\n","\n",[global,{return,binary}]),
     {length(X),Bin}.
 
