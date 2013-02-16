@@ -12,17 +12,19 @@ build:
 
 image:
 	rebar ling-image
+	rsync vmling dom0::images/$(PROJ_NAME).img
 
 me:
 	rebar compile
 	rebar ling-build-image
+	rsync vmling dom0::images/$(PROJ_NAME).img
 
 em:
 	rebar compile
 	rebar ling-build-image
+	rsync vmling dom0::images/$(PROJ_NAME).img
 
 start:
-	rsync vmling dom0::images/$(PROJ_NAME).img
 	virsh -c xen+tcp://dom0 create --console $(PROJ_NAME).xml
 
 console:
