@@ -1,18 +1,20 @@
 <domain type='xen'>
   <name>testling</name>
-  <memory unit='KiB'>524288</memory>
-  <currentMemory unit='KiB'>524288</currentMemory>
+  <memory unit='MiB'>1024</memory>
+  <currentMemory unit='MiB'>1024</currentMemory>
   <vcpu>1</vcpu>
   <bootloader></bootloader>
   <os>
     <type>linux</type>
     <kernel>/root/images/testling.img</kernel>
-    <cmdline>-dhcp -secret 6c8e4146840f01767cb61fb5d97e9adab0c9e0a1 17685f20d43d4cabde39f1769d402d801bc95bdc -9p 192.168.0.2 /home/mk/testling/playground /tmp</cmdline>
+    <cmdline>-goofs /tmp -home /tmp</cmdline>
   </os>
   <devices>
-    <interface type='ethernet'>
-      <script path='/etc/xen/scripts/vif-bridge'/>
-    </interface>
+	<disk type='file' device='disk'>
+      <driver name='tap' type='aio'/>
+      <source file='/root/images/testdsk1.img'/>
+      <target dev='xvda' bus='xen'/>
+    </disk>
   </devices>
 </domain>
 
